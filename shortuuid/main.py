@@ -7,9 +7,7 @@ from typing import List
 from typing import Optional
 
 
-def int_to_string(
-    number: int, alphabet: List[str], padding: Optional[int] = None
-) -> str:
+def int_to_string(number: int, alphabet: List[str], padding: Optional[int] = None) -> str:
     """
     Convert a number to a string, using the given alphabet.
 
@@ -110,7 +108,7 @@ class ShortUUID(object):
         """Return the current alphabet used for new UUIDs."""
         return "".join(self._alphabet)
 
-    def set_alphabet(self, alphabet: str, dont_sort_alphabet: bool=False) -> None:
+    def set_alphabet(self, alphabet: str, dont_sort_alphabet: bool = False) -> None:
         """Set the alphabet to be used for new UUIDs."""
         # Turn the alphabet into a set and sort it to prevent duplicates
         # and ensure reproducibility.
