@@ -3,30 +3,46 @@
 import math
 import secrets
 import uuid as _uu
-from typing import List
-from typing import Optional
+from typing import Final, NewType
+
+# Type alias for encoded short UUIDs
+ShortUUIDStr = NewType("ShortUUIDStr", str)
+
+# Default alphabet excludes similar-looking characters (I, O, l, 0)
+DEFAULT_ALPHABET: Final = "23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
 
-def int_to_string(number: int, alphabet: List[str], padding: Optional[int] = None) -> str:
-    """
-    Convert a number to a string, using the given alphabet.
+class ShortUUIDError(Exception):
+    """Base exception for shortuuid."""
+
+
+class InvalidAlphabetError(ShortUUIDError):
+    """Raised when alphabet has fewer than 2 unique characters."""
+
+
+class InvalidInputError(ShortUUIDError):
+    """Raised when encode/decode receives wrong input type."""
+
+
+def int_to_string(number: int, alphabet: list[str], padding: int | None = None) -> str:
+    """Convert a number to a string, using the given alphabet.
 
     The output has the most significant digit first.
     """
-    output = ""
     alpha_len = len(alphabet)
+    digits: list[str] = []
     while number:
         number, digit = divmod(number, alpha_len)
-        output += alphabet[digit]
+        digits.append(alphabet[digit])
     if padding:
-        remainder = max(padding - len(output), 0)
-        output = output + alphabet[0] * remainder
-    return output[::-1]
+        remainder = max(padding - len(digits), 0)
+        digits.extend(alphabet[0] for _ in range(remainder))
+    digits.reverse()
+    return "".join(digits)
 
 
-def string_to_int(string: str, alphabet: List[str]) -> int:
-    """
-    Convert a string to a number, using the given alphabet.
+def string_to_int(string: str, alphabet: list[str]) -> int:
+    """Convert a string to a number, using the given alphabet.
 
     The input is assumed to have the most significant digit first.
     """
@@ -37,35 +53,34 @@ def string_to_int(string: str, alphabet: List[str]) -> int:
     return number
 
 
-class ShortUUID(object):
-    def __init__(self, alphabet: Optional[str] = None, dont_sort_alphabet: Optional[bool] = False) -> None:
-        if alphabet is None:
-            alphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ" "abcdefghijkmnopqrstuvwxyz"
+class ShortUUID:
+    """Generates concise, URL-safe UUIDs."""
 
+    __slots__ = ("_alphabet", "_alpha_len", "_length")
+
+    def __init__(self, alphabet: str | None = None, *, dont_sort_alphabet: bool = False) -> None:
+        if alphabet is None:
+            alphabet = DEFAULT_ALPHABET
         self.set_alphabet(alphabet, dont_sort_alphabet=dont_sort_alphabet)
 
-    @property
-    def _length(self) -> int:
-        """Return the necessary length to fit the entire UUID given the current alphabet."""
-        return int(math.ceil(math.log(2**128, self._alpha_len)))
+    def __repr__(self) -> str:
+        return f"ShortUUID(alphabet={self.get_alphabet()!r})"
 
-    def encode(self, uuid: _uu.UUID, pad_length: Optional[int] = None) -> str:
-        """
-        Encode a UUID into a string (LSB first) according to the alphabet.
+    def encode(self, uuid: _uu.UUID, /, pad_length: int | None = None) -> ShortUUIDStr:
+        """Encode a UUID into a string (LSB first) according to the alphabet.
 
         If leftmost (MSB) bits are 0, the string might be shorter.
         """
         if not isinstance(uuid, _uu.UUID):
-            raise ValueError("Input `uuid` must be a UUID object.")
+            raise InvalidInputError("Input `uuid` must be a UUID object.")
         if pad_length is None:
             pad_length = self._length
-        return int_to_string(uuid.int, self._alphabet, padding=pad_length)
+        return ShortUUIDStr(int_to_string(uuid.int, self._alphabet, padding=pad_length))
 
-    def decode(self, string: str, legacy: bool = False) -> _uu.UUID:
-        """
-        Decode a string according to the current alphabet into a UUID.
+    def decode(self, string: ShortUUIDStr, /, *, legacy: bool = False) -> _uu.UUID:
+        """Decode a string according to the current alphabet into a UUID.
 
-        Raises ValueError when encountering illegal characters or a too-long string.
+        Raises InvalidInputError when encountering illegal characters or a too-long string.
 
         If string too short, fills leftmost (MSB) bits with 0.
 
@@ -73,14 +88,13 @@ class ShortUUID(object):
         1.0.0.
         """
         if not isinstance(string, str):
-            raise ValueError("Input `string` must be a str.")
+            raise InvalidInputError("Input `string` must be a str.")
         if legacy:
-            string = string[::-1]
+            string = ShortUUIDStr(string[::-1])
         return _uu.UUID(int=string_to_int(string, self._alphabet))
 
-    def uuid(self, name: Optional[str] = None, pad_length: Optional[int] = None) -> str:
-        """
-        Generate and return a UUID.
+    def uuid(self, name: str | None = None, pad_length: int | None = None) -> ShortUUIDStr:
+        """Generate and return a UUID.
 
         If the name parameter is provided, set the namespace to the provided
         name and generate a UUID.
@@ -97,27 +111,26 @@ class ShortUUID(object):
             u = _uu.uuid5(_uu.NAMESPACE_DNS, name)
         return self.encode(u, pad_length)
 
-    def random(self, length: Optional[int] = None) -> str:
+    def random(self, length: int | None = None) -> ShortUUIDStr:
         """Generate and return a cryptographically secure short random string of `length`."""
         if length is None:
             length = self._length
-
-        return "".join(secrets.choice(self._alphabet) for _ in range(length))
+        return ShortUUIDStr("".join(secrets.choice(self._alphabet) for _ in range(length)))
 
     def get_alphabet(self) -> str:
         """Return the current alphabet used for new UUIDs."""
         return "".join(self._alphabet)
 
-    def set_alphabet(self, alphabet: str, dont_sort_alphabet: bool = False) -> None:
+    def set_alphabet(self, alphabet: str, *, dont_sort_alphabet: bool = False) -> None:
         """Set the alphabet to be used for new UUIDs."""
         # Turn the alphabet into a set and sort it to prevent duplicates
         # and ensure reproducibility.
         new_alphabet = list(dict.fromkeys(alphabet)) if dont_sort_alphabet else list(sorted(set(alphabet)))
-        if len(new_alphabet) > 1:
-            self._alphabet = new_alphabet
-            self._alpha_len = len(self._alphabet)
-        else:
-            raise ValueError("Alphabet with more than " "one unique symbols required.")
+        if len(new_alphabet) <= 1:
+            raise InvalidAlphabetError("Alphabet with more than one unique symbols required.")
+        self._alphabet = new_alphabet
+        self._alpha_len = len(self._alphabet)
+        self._length = int(math.ceil(math.log(2**128, self._alpha_len)))
 
     def encoded_length(self, num_bytes: int = 16) -> int:
         """Return the string length of the shortened UUID."""

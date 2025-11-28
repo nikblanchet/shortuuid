@@ -1,22 +1,19 @@
 import argparse
 import sys
-from typing import Any
 from uuid import UUID
 
-from .main import decode
-from .main import encode
-from .main import uuid
+from .main import decode, encode, uuid
 
 
-def encode_cli(args: argparse.Namespace):
+def encode_cli(args: argparse.Namespace) -> None:
     print(encode(args.uuid))
 
 
-def decode_cli(args: argparse.Namespace):
+def decode_cli(args: argparse.Namespace) -> None:
     print(str(decode(args.shortuuid, legacy=args.legacy)))
 
 
-def cli(*args: Any) -> None:
+def cli(*args: object) -> None:
     parser = argparse.ArgumentParser(
         description="Generate, encode and decode shortuuids",
         epilog="top-level command generates a random shortuuid",
@@ -30,7 +27,7 @@ def cli(*args: Any) -> None:
 
     decode_parser = subparsers.add_parser("decode", help="Decode a short UUID into a UUID", description=decode.__doc__)
     decode_parser.add_argument("shortuuid", type=str, help="Short UUID to be decoded")
-    decode_parser.add_argument("--legacy", action="store_true")
+    decode_parser.add_argument("--legacy", action=argparse.BooleanOptionalAction, default=False)
     decode_parser.set_defaults(func=decode_cli)
 
     passed_args = parser.parse_args(*args)

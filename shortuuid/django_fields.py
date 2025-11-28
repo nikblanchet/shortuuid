@@ -1,6 +1,4 @@
-from typing import Any
-from typing import Dict
-from typing import Tuple
+from typing import Any, override
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -11,6 +9,7 @@ from . import ShortUUID
 class ShortUUIDField(models.CharField):
     description = _("A short UUID field.")
 
+    @override
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         self.length: int = kwargs.pop("length", 22)  # type: ignore
         self.prefix: str = kwargs.pop("prefix", "")  # type: ignore
@@ -31,7 +30,8 @@ class ShortUUIDField(models.CharField):
             length=self.length
         )
 
-    def deconstruct(self) -> Tuple[str, str, Tuple, Dict[str, Any]]:
+    @override
+    def deconstruct(self) -> tuple[str, str, tuple, dict[str, Any]]:
         name, path, args, kwargs = super().deconstruct()
         kwargs["alphabet"] = self.alphabet
         kwargs["length"] = self.length

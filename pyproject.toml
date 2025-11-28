@@ -1,16 +1,12 @@
 [tool.poetry]
 name = "shortuuid"
-version = "1.0.13"
+version = "2.0.0"
 description = "A generator library for concise, unambiguous and URL-safe UUIDs."
 license = "BSD-3-Clause"
 classifiers = [
   "License :: OSI Approved :: BSD License",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.6",
-  "Programming Language :: Python :: 3.7",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.13",
   "Topic :: Software Development :: Libraries :: Python Modules"
 ]
 homepage = "https://github.com/skorokithakis/shortuuid/"
@@ -24,10 +20,25 @@ include = [
 shortuuid = "shortuuid.cli:cli"
 
 [tool.poetry.dependencies]
-python = ">=3.6"
+python = ">=3.13"
 
 [tool.ruff]
+target-version = "py313"
 line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",     # pycodestyle errors
+    "F",     # pyflakes
+    "DTZ",   # flake8-datetimez (timezone-aware datetimes)
+    "UP",    # pyupgrade (enforces modern syntax)
+    "PTH",   # flake8-use-pathlib
+    "I",     # isort
+    "SIM",   # flake8-simplify
+    "PERF",  # perflint (performance)
+    "YTT",   # flake8-2020
+]
+ignore = []
 
 [build-system]
 requires = ["poetry-core"]
