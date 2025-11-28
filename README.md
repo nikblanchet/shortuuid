@@ -1,6 +1,10 @@
 Description
 ===========
 
+[![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
+[![License: BSD](https://img.shields.io/badge/license-BSD-green.svg)](https://opensource.org/licenses/BSD-3-Clause)
+[![Version](https://img.shields.io/badge/version-2.0.0-orange.svg)](https://pypi.org/project/shortuuid/)
+
 `shortuuid` is a simple python library that generates concise, unambiguous, URL-safe
 UUIDs.
 
@@ -10,15 +14,13 @@ generating uuids using Python's built-in `uuid` module and then translating them
 base57 using lowercase and uppercase letters and digits, and removing similar-looking
 characters such as l, 1, I, O and 0.
 
-[![image](https://travis-ci.org/skorokithakis/shortuuid.svg?branch=master)](https://travis-ci.org/skorokithakis/shortuuid)
-
 
 Installation
 ------------
 
 To install `shortuuid` you need:
 
--   Python 3.6+
+-   Python 3.13+
 
 If you have the dependencies, you have multiple options of installation:
 
