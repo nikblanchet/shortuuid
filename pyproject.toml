@@ -40,6 +40,10 @@ select = [
 ]
 ignore = []
 
+[tool.pydocstyle]
+# D212 and D213 are mutually exclusive - we use D212 (summary on first line)
+ignore = ["D213"]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

@@ -13,7 +13,7 @@ def decode_cli(args: argparse.Namespace) -> None:
     print(str(decode(args.shortuuid, legacy=args.legacy)))
 
 
-def cli(*args: object) -> None:
+def cli(args: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
         description="Generate, encode and decode shortuuids",
         epilog="top-level command generates a random shortuuid",
@@ -30,7 +30,7 @@ def cli(*args: object) -> None:
     decode_parser.add_argument("--legacy", action=argparse.BooleanOptionalAction, default=False)
     decode_parser.set_defaults(func=decode_cli)
 
-    passed_args = parser.parse_args(*args)
+    passed_args = parser.parse_args(args)
 
     if hasattr(passed_args, "func"):
         passed_args.func(passed_args)
