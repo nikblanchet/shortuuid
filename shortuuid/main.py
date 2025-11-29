@@ -63,7 +63,7 @@ def string_to_int(
 class ShortUUID:
     """Generates concise, URL-safe UUIDs."""
 
-    __slots__ = ("_alphabet", "_alpha_len", "_alphabet_index", "_length")
+    __slots__ = ("_alphabet", "_alphabet_str", "_alpha_len", "_alphabet_index", "_length")
 
     def __init__(self, alphabet: str | None = None, *, dont_sort_alphabet: bool = False) -> None:
         if alphabet is None:
@@ -126,7 +126,7 @@ class ShortUUID:
 
     def get_alphabet(self) -> str:
         """Return the current alphabet used for new UUIDs."""
-        return "".join(self._alphabet)
+        return self._alphabet_str
 
     def set_alphabet(self, alphabet: str, *, dont_sort_alphabet: bool = False) -> None:
         """Set the alphabet to be used for new UUIDs."""
@@ -136,6 +136,7 @@ class ShortUUID:
         if len(new_alphabet) <= 1:
             raise InvalidAlphabetError("Alphabet with more than one unique symbols required.")
         self._alphabet = new_alphabet
+        self._alphabet_str = "".join(new_alphabet)
         self._alpha_len = len(self._alphabet)
         self._alphabet_index = {char: idx for idx, char in enumerate(self._alphabet)}
         self._length = int(math.ceil(math.log(2**128, self._alpha_len)))
