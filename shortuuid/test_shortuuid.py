@@ -239,6 +239,11 @@ class TestDecodingEdgeCases:
         with pytest.raises(InvalidInputError):
             su.decode(invalid_input)
 
+    def test_decode_invalid_characters(self):
+        su = ShortUUID("abc")
+        with pytest.raises(ValueError):
+            su.decode("xyz")
+
 
 # --- CLI tests ---
 
