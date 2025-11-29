@@ -41,22 +41,29 @@ def int_to_string(number: int, alphabet: list[str], padding: int | None = None) 
     return "".join(digits)
 
 
-def string_to_int(string: str, alphabet: list[str]) -> int:
+def string_to_int(
+    string: str,
+    alphabet: list[str],
+    alphabet_index: dict[str, int] | None = None,
+) -> int:
     """Convert a string to a number, using the given alphabet.
 
     The input is assumed to have the most significant digit first.
+    If alphabet_index is provided, uses O(1) dict lookup instead of O(n) list.index().
     """
+    if alphabet_index is None:
+        alphabet_index = {char: idx for idx, char in enumerate(alphabet)}
     number = 0
     alpha_len = len(alphabet)
     for char in string:
-        number = number * alpha_len + alphabet.index(char)
+        number = number * alpha_len + alphabet_index[char]
     return number
 
 
 class ShortUUID:
     """Generates concise, URL-safe UUIDs."""
 
-    __slots__ = ("_alphabet", "_alpha_len", "_length")
+    __slots__ = ("_alphabet", "_alpha_len", "_alphabet_index", "_length")
 
     def __init__(self, alphabet: str | None = None, *, dont_sort_alphabet: bool = False) -> None:
         if alphabet is None:
@@ -91,7 +98,7 @@ class ShortUUID:
             raise InvalidInputError("Input `string` must be a str.")
         if legacy:
             string = ShortUUIDStr(string[::-1])
-        return _uu.UUID(int=string_to_int(string, self._alphabet))
+        return _uu.UUID(int=string_to_int(string, self._alphabet, self._alphabet_index))
 
     def uuid(self, name: str | None = None, pad_length: int | None = None) -> ShortUUIDStr:
         """Generate and return a UUID.
@@ -130,6 +137,7 @@ class ShortUUID:
             raise InvalidAlphabetError("Alphabet with more than one unique symbols required.")
         self._alphabet = new_alphabet
         self._alpha_len = len(self._alphabet)
+        self._alphabet_index = {char: idx for idx, char in enumerate(self._alphabet)}
         self._length = int(math.ceil(math.log(2**128, self._alpha_len)))
 
     def encoded_length(self, num_bytes: int = 16) -> int:
