@@ -55,6 +55,8 @@ def string_to_int(
 
 
 class ShortUUID(object):
+    __slots__ = ("_alphabet", "_alphabet_str", "_alpha_len", "_alphabet_index")
+
     def __init__(
         self, alphabet: Optional[str] = None, dont_sort_alphabet: bool = False
     ) -> None:
